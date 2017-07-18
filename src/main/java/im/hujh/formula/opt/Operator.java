@@ -1,6 +1,7 @@
 package im.hujh.formula.opt;
 
 import im.hujh.formula.EvaluateException;
+import im.hujh.formula.Options;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -59,8 +60,9 @@ public abstract class Operator {
 		return symbol;
 	}
 
-	public abstract void evaluate(LinkedList<Object> stack, Map<String, ?> variables) throws EvaluateException;
+	public abstract void evaluate(LinkedList<Object> stack, Map<String, ?> variables, Options options) throws EvaluateException;
 
+    @SuppressWarnings("unchecked")
 	protected <T> T pop(LinkedList<Object> stack, Class<T> cls) throws EvaluateException {
 		Object frame = null;
 		try {

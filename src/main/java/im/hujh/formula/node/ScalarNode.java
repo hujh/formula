@@ -20,7 +20,7 @@ public class ScalarNode extends Node {
 	}
 
 	@Override
-	public void accept(NodeVisitor visitor) {
+	public void accept(NodeVisitor visitor) throws Exception {
 		visitor.visitScalarNode(this);
 	}
 

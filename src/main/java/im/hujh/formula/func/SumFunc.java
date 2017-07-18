@@ -10,16 +10,15 @@ import java.util.List;
  */
 public class SumFunc implements Func {
 
-	@Override
-	public BigDecimal apply(String func, List<BigDecimal> args) throws EvaluateException {
-		FuncAsserts.expectArgcAtLeast(func, 1, args.size());
+    @Override
+    public BigDecimal apply(String func, List<BigDecimal> args) throws EvaluateException {
+        FuncAsserts.expectArgcAtLeast(func, 1, args.size());
 
-		BigDecimal ret = BigDecimal.ZERO;
-		for (int i = 0; i < args.size(); i++) {
-			BigDecimal d = args.get(i);
-			ret = ret.add(d);
-		}
+        BigDecimal ret = BigDecimal.ZERO;
+        for (BigDecimal d : args) {
+            ret = ret.add(d);
+        }
 
-		return ret;
-	}
+        return ret;
+    }
 }

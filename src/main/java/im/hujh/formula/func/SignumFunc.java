@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * @author hujh
  */
-public class SignFunc implements Func {
+public class SignumFunc implements Func {
 
 	@Override
 	public BigDecimal apply(String func, List<BigDecimal> args) throws EvaluateException {

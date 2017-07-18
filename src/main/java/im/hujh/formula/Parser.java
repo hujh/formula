@@ -2,12 +2,12 @@ package im.hujh.formula;
 
 import im.hujh.formula.node.FuncNode;
 import im.hujh.formula.node.ListNode;
-import im.hujh.formula.node.Node;
 import im.hujh.formula.node.OperatorNode;
 import im.hujh.formula.node.ScalarNode;
 import im.hujh.formula.node.VariableNode;
 import im.hujh.formula.opt.Operator;
 import im.hujh.formula.opt.Operators;
+import java.math.BigDecimal;
 
 import java.util.LinkedList;
 
@@ -22,7 +22,7 @@ import java.util.LinkedList;
  * number ::= [ sign ] { digit } [ dot { digit } ]
  * digit ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
  * alpha ::= "a" ... "z" | "A" ... "Z"
- * operator ::= "+" | "-" | "*" | "/"
+ * operator ::= "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=" | "&" | "|" | "()"
  * unaryOperator ::= "!"
  * not ::= "!"
  * sign ::= "+" | "-"
@@ -44,7 +44,7 @@ public class Parser {
         this.input = input;
         this.output = new ListNode(Pos.of(0, 1, 1));
         this.lexer = new Lexer(input);
-        this.stack = new LinkedList<Operator>();
+        this.stack = new LinkedList<>();
     }
 
     public ListNode parse() throws ParseException {
@@ -147,9 +147,9 @@ public class Parser {
      */
     private void parseSign() throws ParseException {
         Token token = expect(TokenType.operator);
-        Operator op = Operators.from(token.getValue());
+        Operator op = Operators.of(token.getValue());
         if (isSign(op)) {
-            output.offer(new ScalarNode(token.getPos(), "0"));
+            output.offer(new ScalarNode(token.getPos(), BigDecimal.ZERO));
             processOperator(op, token.getPos());
         } else {
             unexpected(token);
@@ -208,13 +208,13 @@ public class Parser {
     }
 
     /**
-     * operator ::= "+" | "-" | "*" | "/"
+     * operator ::= "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=" | "&" | "|" | "()"
      *
      * @throws ParseException
      */
     private void parseOperator() throws ParseException {
         Token token = expect(TokenType.operator);
-        Operator op = Operators.from(token.getValue());
+        Operator op = Operators.of(token.getValue());
         processOperator(op, token.getPos());
     }
 
@@ -225,25 +225,25 @@ public class Parser {
      */
     private void parseUnaryOperator() throws ParseException {
         Token token = expect(TokenType.unaryOperator);
-        Operator op = Operators.from(token.getValue());
+        Operator op = Operators.of(token.getValue());
         processOperator(op, token.getPos());
     }
 
     private void parseComma() throws ParseException {
         Token token = expect(TokenType.comma);
-        Operator op = Operators.from(token.getValue());
+        Operator op = Operators.of(token.getValue());
         processOperator(op, token.getPos());
     }
 
     private void parseLeftParen() throws ParseException {
         Token token = expect(TokenType.leftParen);
-        Operator op = Operators.from(token.getValue());
+        Operator op = Operators.of(token.getValue());
         processLeftParen(op, token.getPos());
     }
 
     private void parseRightParen() throws ParseException {
         Token token = expect(TokenType.rightParen);
-        Operator op = Operators.from(token.getValue());
+        Operator op = Operators.of(token.getValue());
         processRightParen(op, token.getPos());
     }
 
@@ -282,7 +282,7 @@ public class Parser {
     }
 
     private boolean isSign(Operator op) {
-        return op == Operators.add || op == Operators.sub;
+        return op == Operators.add || op == Operators.subtract;
     }
 
     private boolean lookAhead(TokenType... types) throws ParseException {
@@ -349,31 +349,4 @@ public class Parser {
         return token.getPos().print(input);
     }
 
-    public static void main(String[] args) throws ParseException {
-//		String input = "a + b * c + (d * e + f)*g";
-//		String input = "1-2-3";
-//		String input = "4^3^2";
-//		String input = "sin(a, b, c + d)";
-//		String input = "2 * (0-sin(3))";
-//		String input = "x + sin(1)";
-//		String input = "- 1 + 2";
-//		String input = "0.5 * (-max(10, 5))";
-//		String input = "1 + max(4 * min(5 + 6))*7";
-//		String input = "3 + f(1, 2) * 5";
-//		String input = "1 - (!)";
-        String input = "a + b * c(2, 3) + (d * e + f) * g >= 5";
-
-        Parser parser = new Parser(input);
-
-        ListNode list = parser.parse();
-
-        for (;;) {
-            Node node = list.next();
-            if (node == null) {
-                break;
-            } else {
-                System.out.println(node);
-            }
-        }
-    }
 }

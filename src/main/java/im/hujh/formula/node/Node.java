@@ -7,21 +7,21 @@ import im.hujh.formula.Pos;
  */
 public abstract class Node {
 
-	private final NodeType type;
-	private final Pos pos;
+    private final NodeType type;
+    private final Pos pos;
 
-	public Node(NodeType type, Pos pos) {
-		this.type = type;
-		this.pos = pos;
-	}
+    public Node(NodeType type, Pos pos) {
+        this.type = type;
+        this.pos = pos;
+    }
 
-	public abstract void accept(NodeVisitor visitor);
+    public abstract void accept(NodeVisitor visitor) throws Exception;
 
-	public NodeType getType() {
-		return type;
-	}
+    public NodeType getType() {
+        return type;
+    }
 
-	public Pos getPos() {
-		return pos;
-	}
+    public Pos getPos() {
+        return pos;
+    }
 }

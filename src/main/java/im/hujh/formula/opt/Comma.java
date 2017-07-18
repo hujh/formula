@@ -1,5 +1,6 @@
 package im.hujh.formula.opt;
 
+import im.hujh.formula.Options;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -13,6 +14,6 @@ public final class Comma extends Operator {
 	}
 
 	@Override
-	public void evaluate(LinkedList<Object> stack, Map<String, ?> variables) {
+	public void evaluate(LinkedList<Object> stack, Map<String, ?> variables, Options options) {
 	}
 }

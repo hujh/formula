@@ -19,7 +19,7 @@ public class VariableNode extends Node {
 	}
 
 	@Override
-	public void accept(NodeVisitor visitor) {
+	public void accept(NodeVisitor visitor) throws Exception {
 		visitor.visitVariableNode(this);
 	}
 

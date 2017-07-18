@@ -11,9 +11,9 @@ public class Operators {
 	private static final Map<String, Operator> operators = new HashMap<String, Operator>();
 
 	public static final Operator add = new Add();
-	public static final Operator sub = new Subtract();
-	public static final Operator mul = new Multiply();
-	public static final Operator div = new Divide();
+	public static final Operator subtract = new Subtract();
+	public static final Operator multiply = new Multiply();
+	public static final Operator divide = new Divide();
 	public static final Operator lt = new Lt();
 	public static final Operator le = new Le();
 	public static final Operator gt = new Gt();
@@ -30,9 +30,9 @@ public class Operators {
 
 	static {
 		operators.put(add.getSymbol(), add);
-		operators.put(sub.getSymbol(), sub);
-		operators.put(mul.getSymbol(), mul);
-		operators.put(div.getSymbol(), div);
+		operators.put(subtract.getSymbol(), subtract);
+		operators.put(multiply.getSymbol(), multiply);
+		operators.put(divide.getSymbol(), divide);
 		operators.put(lt.getSymbol(), lt);
 		operators.put(le.getSymbol(), le);
 		operators.put(gt.getSymbol(), gt);
@@ -47,7 +47,7 @@ public class Operators {
 		operators.put(comma.getSymbol(), comma);
 	}
 
-	public static Operator from(String symbol) {
+	public static Operator of(String symbol) {
 		Operator op = operators.get(symbol);
 		if (op == null) {
 			throw new IllegalArgumentException("illegal operator: " + symbol);

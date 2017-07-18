@@ -1,17 +1,6 @@
 package im.hujh.formula;
 
-import im.hujh.formula.func.IfFunc;
-import im.hujh.formula.func.SumFunc;
-import im.hujh.formula.func.AvgFunc;
-import im.hujh.formula.func.StepFunc;
-import im.hujh.formula.func.AbsFunc;
-import im.hujh.formula.func.FloorFunc;
-import im.hujh.formula.func.RangeFunc;
-import im.hujh.formula.func.RoundFunc;
-import im.hujh.formula.func.MaxFunc;
-import im.hujh.formula.func.MinFunc;
-import im.hujh.formula.func.PowFunc;
-import im.hujh.formula.func.SignFunc;
+import im.hujh.formula.func.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,26 +10,39 @@ import java.util.Map;
  */
 public class Buildin {
 
-	private static final Map<String, Object> standard = new HashMap<String, Object>();
+    public static final Func MIN = new MinFunc();
+    public static final Func MAX = new MaxFunc();
+    public static final Func AVG = new AvgFunc();
+    public static final Func SUM = new SumFunc();
+    public static final Func FLOOR = new FloorFunc();
+    public static final Func ROUND = new RoundFunc();
+    public static final Func ABS = new AbsFunc();
+    public static final Func POW = new PowFunc();
+    public static final Func SIGNUM = new SignumFunc();
+    public static final Func RANGE = new RangeFunc();
+    public static final Func STEP = new StepFunc();
+    public static final Func IF = new IfFunc();
 
-	static {
-		standard.put("min", new MinFunc());
-		standard.put("max", new MaxFunc());
-		standard.put("avg", new AvgFunc());
-		standard.put("sum", new SumFunc());
-		standard.put("floor", new FloorFunc());
-		standard.put("round", new RoundFunc());
-		standard.put("abs", new AbsFunc());
-		standard.put("pow", new PowFunc());
-		standard.put("sign", new SignFunc());
-		standard.put("range", new RangeFunc());
-		standard.put("step", new StepFunc());
-		standard.put("if", new IfFunc());
-	}
+    private static final Map<String, Object> standard = new HashMap<String, Object>();
 
-	public static Map<String, Object> standard() {
-		Map<String, Object> vars = new HashMap<String, Object>();
-		vars.putAll(standard);
-		return vars;
-	}
+    static {
+        standard.put("min", MIN);
+        standard.put("max", MAX);
+        standard.put("avg", AVG);
+        standard.put("sum", SUM);
+        standard.put("floor", FLOOR);
+        standard.put("round", ROUND);
+        standard.put("abs", ABS);
+        standard.put("pow", POW);
+        standard.put("signum", SIGNUM);
+        standard.put("range", RANGE);
+        standard.put("step", STEP);
+        standard.put("if", IF);
+    }
+
+    public static Map<String, Object> standard() {
+        Map<String, Object> vars = new HashMap<>();
+        vars.putAll(standard);
+        return vars;
+    }
 }

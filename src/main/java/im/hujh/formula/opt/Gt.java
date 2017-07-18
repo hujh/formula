@@ -1,6 +1,7 @@
 package im.hujh.formula.opt;
 
 import im.hujh.formula.EvaluateException;
+import im.hujh.formula.Options;
 import java.math.BigDecimal;
 
 import java.util.LinkedList;
@@ -16,7 +17,7 @@ public class Gt extends Operator {
 	}
 
 	@Override
-	public void evaluate(LinkedList<Object> stack, Map<String, ?> variables) throws EvaluateException {
+	public void evaluate(LinkedList<Object> stack, Map<String, ?> variables, Options options) throws EvaluateException {
 		if (stack.size() < 2) {
 			throw new EvaluateException("stack error for the \"" + symbol + "\" operator: not enough operands");
 		}

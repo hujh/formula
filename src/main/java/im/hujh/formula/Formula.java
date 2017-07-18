@@ -3,10 +3,7 @@ package im.hujh.formula;
 import im.hujh.formula.node.FuncNode;
 import im.hujh.formula.node.ListNode;
 import im.hujh.formula.node.Node;
-import static im.hujh.formula.node.NodeType.func;
-import static im.hujh.formula.node.NodeType.operator;
-import static im.hujh.formula.node.NodeType.scalar;
-import static im.hujh.formula.node.NodeType.variable;
+import im.hujh.formula.node.NodeVisitor;
 import im.hujh.formula.node.OperatorNode;
 import im.hujh.formula.node.ScalarNode;
 import im.hujh.formula.node.VariableNode;
@@ -23,7 +20,7 @@ import java.util.Map;
 public class Formula {
 
     private final String formula;
-    private final ListNode root;
+    private final ListNode list;
 
     public Formula(String formula) throws ParseException {
         if (formula == null) {
@@ -33,62 +30,26 @@ public class Formula {
         Parser parser = new Parser(formula);
 
         this.formula = formula;
-        this.root = parser.parse();
+        this.list = parser.parse();
     }
 
-    private Formula(String source, ListNode root) {
-        this.formula = source;
-        this.root = root;
+    private Formula(String formula, ListNode list) {
+        this.formula = formula;
+        this.list = list;
     }
 
     public BigDecimal evaluate(Map<String, ?> variables) throws EvaluateException {
-        LinkedList<Object> stack = new LinkedList<Object>();
-        for (;;) {
-            Node node = root.next();
-            if (node == null) {
-                break;
-            }
-            switch (node.getType()) {
-                case scalar:
-                    ScalarNode sn = (ScalarNode) node;
-                    BigDecimal scalar = sn.getScalar();
-                    stack.push(scalar);
-                    break;
-                case variable:
-                    VariableNode vn = (VariableNode) node;
-                    Object variable = variables.get(vn.getName());
-                    if (variable == null) {
-                        throw new EvaluateException("variable \"" + vn.getName() + "\" is undefined in " + vn.getPos().print(formula));
-                    } else if (!(variable instanceof BigDecimal)) {
-                        throw new EvaluateException("variable \"" + vn.getName() + "\" is unexpected type: expect \"BigDecimal\" but \"" + variable.getClass() + "\"" + " in " + vn.getPos().print(formula));
-                    }
-                    stack.push(variable);
-                    break;
-                case func:
-                    FuncNode fn = (FuncNode) node;
-                    stack.push(fn.getFunc());
-                    break;
-                case operator:
-                    OperatorNode opn = (OperatorNode) node;
-                    try {
-                        Operator op = opn.getOperator();
-                        op.evaluate(stack, variables);
-                    } catch (EvaluateException e) {
-                        throw new EvaluateException(e.getMessage() + " in " + opn.getPos().print(formula), e);
-                    }
-                    break;
-            }
+        return evaluate(variables, Options.DEFAULT);
+    }
+
+    public BigDecimal evaluate(Map<String, ?> variables, Options options) throws EvaluateException {
+        if (options == null) {
+            options = Options.DEFAULT;
         }
 
-        if (stack.size() != 1) {
-            throw new EvaluateException("stack error");
-        }
-        Object frame = stack.pop();
-        if (frame instanceof BigDecimal) {
-            return (BigDecimal) frame;
-        } else {
-            throw new EvaluateException("stack error");
-        }
+        Evaluator evaluator = new Evaluator(list, variables, options);
+
+        return evaluator.evaluate();
     }
 
     public static BigDecimal evaluate(String formula) throws EvaluateException, ParseException {
@@ -96,31 +57,97 @@ public class Formula {
     }
 
     public static BigDecimal evaluate(String formula, Map<String, Object> variables) throws EvaluateException, ParseException {
-        return compile(formula).evaluate(variables);
+        return compile(formula).evaluate(variables, Options.DEFAULT);
+    }
+
+    public static BigDecimal evaluate(String formula, Map<String, Object> variables, Options options) throws EvaluateException, ParseException {
+        return compile(formula).evaluate(variables, options);
     }
 
     public static Formula compile(String formula) throws ParseException {
         return new Formula(formula);
     }
 
-    public static void main(String[] args) throws ParseException, EvaluateException {
+    private class Evaluator implements NodeVisitor {
 
-		String input = "(1 + (-2 * 3 + (4 * (5 + 6))*7))";
-//		String input = "1 + (4 * (5 + 6))*7";
-//		String input = "0.5 * (-max(10, 5))";
-//		String input = "1 + amount + max(4, min(5,6))*7";
-//		String input = "steps(amt, 10, 1, 20, 2, 40, 3, 80, 4, 5)";
-//        String input = "3 + max(1, 2) * 5";
-//        String input = "2 / (amt - amt + 5)";
+        private final ListNode list;
+        private final Map<String, ?> variables;
+        private final Options options;
+        private final LinkedList<Object> stack;
 
-        Map<String, Object> vars = Buildin.standard();
-        vars.put("amt", new BigDecimal("1000.0000000000"));
+        public Evaluator(ListNode list, Map<String, ?> variables, Options options) {
+            this.list = list;
+            this.variables = variables;
+            this.options = options;
+            this.stack = new LinkedList<>();
+        }
 
-        BigDecimal d = Formula.evaluate(input, vars);
+        public BigDecimal evaluate() throws EvaluateException {
+            try {
+                list.accept(this);
 
-        System.out.println(d);
-//		System.out.println(2.1 + (- (1 + 2)));
-        System.out.println(1 + 100 + Math.max(4, Math.min(5, 6)) * 7);
+                if (stack.size() != 1) {
+                    throw new EvaluateException("stack error");
+                }
+
+                Object frame = stack.pop();
+                if (frame instanceof BigDecimal) {
+                    BigDecimal result = (BigDecimal) frame;
+
+                    if (options.getScale() > 0 && result.scale() != options.getScale()) {
+                        result = result.setScale(options.getScale(), options.getRoundingMode());
+                    }
+
+                    return result;
+                } else {
+                    throw new EvaluateException("stack error");
+                }
+            } catch (EvaluateException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new EvaluateException("evaluate error", e);
+            }
+        }
+
+        @Override
+        public void visitListNode(ListNode node) throws Exception {
+            for (Node item : node) {
+                item.accept(this);
+            }
+        }
+
+        @Override
+        public void visitScalarNode(ScalarNode node) throws Exception {
+            BigDecimal scalar = node.getScalar();
+            stack.push(scalar);
+        }
+
+        @Override
+        public void visitVariableNode(VariableNode node) throws Exception {
+            Object variable = variables.get(node.getName());
+            if (variable == null) {
+                throw new EvaluateException("variable \"" + node.getName() + "\" is undefined in " + node.getPos().print(formula));
+            } else if (!(variable instanceof BigDecimal)) {
+                throw new EvaluateException("variable \"" + node.getName() + "\" is unexpected type: expect \"BigDecimal\" but \"" + variable.getClass() + "\"" + " in " + node.getPos().print(formula));
+            }
+            stack.push(variable);
+        }
+
+        @Override
+        public void visitFuncNode(FuncNode node) throws Exception {
+            stack.push(node.getName());
+        }
+
+        @Override
+        public void visitOperatorNode(OperatorNode node) throws Exception {
+            try {
+                Operator op = node.getOperator();
+                op.evaluate(stack, variables, options);
+            } catch (EvaluateException e) {
+                throw new EvaluateException(e.getMessage() + " in " + node.getPos().print(formula), e);
+            }
+        }
+
     }
 
 }
